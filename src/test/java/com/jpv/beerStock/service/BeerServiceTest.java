@@ -19,6 +19,7 @@ import com.jpv.beerStock.builder.BeerDTOBuilder;
 import com.jpv.beerStock.dto.BeerDTO;
 import com.jpv.beerStock.entity.Beer;
 import com.jpv.beerStock.exceptions.BeerAlreadyRegisteredException;
+import com.jpv.beerStock.exceptions.BeerNotFoundException;
 import com.jpv.beerStock.mappers.BeerMapper;
 import com.jpv.beerStock.repositories.BeerRepository;
 import com.jpv.beerStock.services.BeerService;
@@ -71,4 +72,35 @@ public class BeerServiceTest {
 		assertThrows(BeerAlreadyRegisteredException.class, () -> beerService.createBeer(expectedBeerDTO));
 		
 	}
+	
+	@Test
+	void whenValidBeerNameIsGivenThenReturnBeer() throws BeerNotFoundException {
+		//Given (Dada as os objetos cerveja)
+		BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		Beer expectedFoundBeer = beerMapper.toModel(expectedFoundBeerDTO);
+		
+		//when (criar o mock do findByName)
+		Mockito.when(beerRepository.findByName(expectedFoundBeerDTO.getName())).thenReturn(Optional.of(expectedFoundBeer));
+		
+		//then
+		BeerDTO beerDTO = beerService.findByName(expectedFoundBeerDTO.getName());
+		
+		assertThat(expectedFoundBeerDTO, is(equalTo(beerDTO)));
+		
+	}
+	
+	@Test
+	void whenNotFoundBeerThenReturnException() {
+		//Given (Dada as os objetos cerveja)
+		BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+				
+		//when (criar o mock do findByName)
+		Mockito.when(beerRepository.findByName(expectedBeerDTO.getName())).thenReturn(Optional.empty());
+	
+		//then validação da exception
+		assertThrows(BeerNotFoundException.class, () -> beerService.findByName(expectedBeerDTO.getName()));
+		
+	}
+	
+	
 }
