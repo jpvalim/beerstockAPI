@@ -2,9 +2,13 @@ package com.jpv.beerStock.controller;
 
 import static com.jpv.beerStock.utils.JsonConvertionUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import javax.net.ssl.SSLEngineResult.Status;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,11 +20,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import com.jpv.beerStock.builder.BeerDTOBuilder;
 import com.jpv.beerStock.dto.BeerDTO;
+import com.jpv.beerStock.exceptions.BeerNotFoundException;
 import com.jpv.beerStock.services.BeerService;
 
 
@@ -84,7 +92,32 @@ public class BeerControllerTest {
   
 	}
 
+	@Test
+	void whenGETCalledValidNameReturnOKStatus() throws Exception {
+		//given
+		BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		
+		when(beerService.findByName(beerDTO.getName())).thenReturn(beerDTO);
+		
+		ResultActions resultPerform = mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH + "/" + beerDTO.getName()).contentType(MediaType.APPLICATION_JSON));
+		resultPerform.andExpect(status().isOk());
+		resultPerform.andExpect(jsonPath("$.name", is(beerDTO.getName())));
+	
+	}
 
+	@Test
+	void whenGETCalledInvalidNameReturnNotFoundException() throws Exception{
+		//given
+		BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		
+		//when
+		when(beerService.findByName(beerDTO.getName())).thenThrow(BeerNotFoundException.class);
+		
+		//then
+		ResultActions resultPerform = mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH + "/" + beerDTO.getName()).contentType(MediaType.APPLICATION_JSON));
+		resultPerform.andExpect(status().isNotFound());
+				
+	}
 
 				
 				
