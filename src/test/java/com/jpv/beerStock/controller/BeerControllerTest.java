@@ -2,11 +2,15 @@ package com.jpv.beerStock.controller;
 
 import static com.jpv.beerStock.utils.JsonConvertionUtils.asJsonString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Collections;
 
 import javax.net.ssl.SSLEngineResult.Status;
 
@@ -29,6 +33,7 @@ import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 import com.jpv.beerStock.builder.BeerDTOBuilder;
 import com.jpv.beerStock.dto.BeerDTO;
 import com.jpv.beerStock.exceptions.BeerNotFoundException;
+import com.jpv.beerStock.repositories.BeerRepository;
 import com.jpv.beerStock.services.BeerService;
 
 
@@ -118,8 +123,55 @@ public class BeerControllerTest {
 		resultPerform.andExpect(status().isNotFound());
 				
 	}
+	
+	@Test
+	void whenGETListCalledReturnOKStatus() throws Exception {
+		//given
+		BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		
+		when(beerService.listAll()).thenReturn(Collections.singletonList(beerDTO));
+		
+		ResultActions resultPerform = mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH).contentType(MediaType.APPLICATION_JSON));
+		resultPerform.andExpect(status().isOk());
+		resultPerform.andExpect(jsonPath("$[0].name", is(beerDTO.getName())));
+	
+	}
+	
+	@Test
+	void whenGETEmptyListCalledReturnOKStatus() throws Exception {
+		//when		
+		when(beerService.listAll()).thenReturn(Collections.emptyList());
+		
+		//then
+		ResultActions resultPerform = mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH).contentType(MediaType.APPLICATION_JSON));
+		resultPerform.andExpect(status().isOk());
 
+	}
+	
+	@Test
+	void whenDELETECalledValidIDReturnNoContentStatus() throws Exception {
+		//given
+		BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		
+		//when
+		doNothing().when(beerService).deleteById(beerDTO.getId());;
+		
+		ResultActions resultPerform = mockMvc.perform(MockMvcRequestBuilders.delete(BEER_API_URL_PATH + "/" + beerDTO.getId()).contentType(MediaType.APPLICATION_JSON));
+		resultPerform.andExpect(status().isNoContent());
+			
+	}
+	
+	@Test
+	void whenDELETECalledInvalidIDReturnNotFoundStatus() throws Exception {
 				
-				
+		//when
+		doThrow(BeerNotFoundException.class).when(beerService).deleteById(INVALID_BEER_ID);;
+		
+		ResultActions resultPerform = mockMvc.perform(MockMvcRequestBuilders.delete(BEER_API_URL_PATH + "/" + INVALID_BEER_ID).contentType(MediaType.APPLICATION_JSON));
+		resultPerform.andExpect(status().isNotFound());
+			
+	}
+	
+	
 
 }

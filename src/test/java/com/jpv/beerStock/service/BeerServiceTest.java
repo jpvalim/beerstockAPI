@@ -4,8 +4,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -102,5 +110,52 @@ public class BeerServiceTest {
 		
 	}
 	
+	@Test
+	void whenListBeerReturnsListOfBeers() {
+		//Given
+		BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		Beer expectedFoundBeer = beerMapper.toModel(expectedFoundBeerDTO);
+				
+		//when
+		when(beerRepository.findAll()).thenReturn(Collections.singletonList(expectedFoundBeer));
+		
+		//then
+		List<BeerDTO> foundedListBeerDTO = beerService.listAll();
+		
+		assertThat(foundedListBeerDTO, is(not(empty())));
+		assertThat(foundedListBeerDTO.get(0), is(equalTo(expectedFoundBeerDTO)));
+				
+	}
+	
+	@Test
+	void whenListBeerReturnsEmptyList() {
+		
+		//when
+		when(beerRepository.findAll()).thenReturn(Collections.emptyList());
+		
+		//then
+		List<BeerDTO> foundedListBeerDTO = beerService.listAll();
+		
+		assertThat(foundedListBeerDTO, is(empty()));
+		
+	}
+	
+	@Test
+	void whenDeleteBeerWithValidIdThenBeerShouldBeDeleted() throws BeerNotFoundException {
+		//Given
+		BeerDTO expectedDeletedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		Beer expectedDeletedBeer = beerMapper.toModel(expectedDeletedBeerDTO);	
+		//when
+		when(beerRepository.findById(expectedDeletedBeerDTO.getId())).thenReturn(Optional.of(expectedDeletedBeer));
+		doNothing().when(beerRepository).deleteById(expectedDeletedBeerDTO.getId());
+		
+		//then
+		beerService.deleteById(expectedDeletedBeerDTO.getId());
+		
+		//Método verify do mockito, isso acontece porque o método deleteById retorna vazio.
+		verify(beerRepository, times(1)).findById(expectedDeletedBeerDTO.getId());
+		verify(beerRepository, times(1)).deleteById(expectedDeletedBeerDTO.getId());
+		
+	}
 	
 }
