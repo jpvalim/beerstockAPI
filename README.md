@@ -1,6 +1,7 @@
-# DIGITAL INOVATION ONE (BootCamp SpreadJavaDeveloper) - Testes unit·rios em uma API de gerenciamento de estoques de cerveja
+# DIGITAL INOVATION ONE (BootCamp SpreadJavaDeveloper) - Testes unit√°rios em uma API de gerenciamento de estoques de cerveja
 
-## LiÁıes aprendidas
--Padr„o de arquitetura REST, Glory of REST de Richardson
--Pir‚mide de testes. (Unit Tests, Integration Tests, UI Tests)
--Uso dos frameworks Junit5, Mockito, HamCrast
+## Li√ß√µes aprendidas
+-Padr√£o de arquitetura REST, Glory of REST de Richardson;
+-Pir√¢mide de testes. (Unit Tests, Integration Tests, UI Tests);
+-Uso dos frameworks Junit5, Mockito, HamCrast;
+-Introdu√ß√£o a pr√°tica de Test Driven Development (TDD);
